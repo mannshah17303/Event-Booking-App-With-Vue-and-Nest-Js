@@ -27,8 +27,8 @@ export class BookingService {
       throw new Error('event is already booked');
     }
     const createdBooking = this.bookingRepository.create({
-      user: { user_id },
-      event: { event_id },
+      user_id,
+      event_id,
       booking_date,
       quantity,
       price_per_ticket,
