@@ -42,7 +42,7 @@ export class BookingController {
       );
     } catch (err) {
       console.error(err);
-      throw new BadRequestException('failed to create user');
+      throw new BadRequestException('event is already booked');
     }
   }
 
