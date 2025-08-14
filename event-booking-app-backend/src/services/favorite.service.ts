@@ -11,8 +11,8 @@ export class FavoriteService {
   ) {}
   async createFavorites(event_id: number, user_id: number): Promise<Favorite> {
     const createdFavorite = this.favoriteRepository.create({
-      user: { user_id },
-      event: { event_id },
+      user_id,
+      event_id,
     });
     return this.favoriteRepository.save(createdFavorite);
   }
@@ -20,16 +20,16 @@ export class FavoriteService {
   async showRedColorInFavoriteEvents(user_id: number) {
     return this.favoriteRepository.find({
       where: {
-        user: { user_id },
+        user_id,
       },
-      relations: ['user', 'event'],
+      relations: ['event'],
     });
   }
 
   async getAllFavoriteEvents(user_id: number) {
     return this.favoriteRepository.find({
       where: {
-        user: { user_id },
+        user_id,
       },
       relations: ['event'],
     });
