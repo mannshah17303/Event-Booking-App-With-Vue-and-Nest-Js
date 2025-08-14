@@ -65,8 +65,11 @@ const submitEvent = async () => {
   } else {
     const isFormValid = await v$.value.$validate();
     if (isFormValid) {
-      const today = new Date().toISOString().split('T')[0];
-      if(new Date(eventDetail.value!.event_date).toISOString().split('T')[0] < today){
+      const today = new Date().toISOString().split("T")[0];
+      if (
+        new Date(eventDetail.value!.event_date).toISOString().split("T")[0] <
+        today
+      ) {
         toast.error("cannot book because the date has gone");
         return;
       }
@@ -80,7 +83,7 @@ const submitEvent = async () => {
           price_per_ticket: parseFloat(eventDetail.value!.price),
         };
         try {
-          store.dispatch("addBooking", insertBookedData);
+          await store.dispatch("addBooking", insertBookedData);
           alert("Payment successful and booking confirmed!");
           cancelForm();
         } catch (error: any) {

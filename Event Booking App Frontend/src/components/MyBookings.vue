@@ -40,6 +40,7 @@ const removeBookedEvent = async (bookingId: string, event: Event) => {
   );
   if (confirmCancelBooking) {
     await store.dispatch("cancelBooking", bookingId);
+    await fetchBookings(currentUser.value.user_id)
   }
 };
 
@@ -48,6 +49,7 @@ const maxRating = 5;
 const setRating = async (eventId: number, star: number, event: Event) => {
   event.stopPropagation();
   await store.dispatch("ratings", { eventId, star });
+  await fetchBookings(currentUser.value.user_id)
 };
 
 const downloadBookings = async () => {
