@@ -41,7 +41,7 @@ export class BookingService {
   async getAllBookingEvents(user_id: number) {
     return this.bookingRepository.find({
       where: {
-        user: { user_id },
+        user_id,
       },
       relations: ['event'],
     });
@@ -50,7 +50,7 @@ export class BookingService {
   async getBookedEventDetailsByEventId(event_id: number) {
     return this.bookingRepository.findOne({
       where: {
-        event: { event_id },
+        event_id,
       },
       relations: ['event'],
     });
@@ -59,7 +59,7 @@ export class BookingService {
   async getBookingsOfLoggedInUser(user_id: number) {
     return this.bookingRepository.find({
       where: {
-        user: { user_id },
+        user_id,
       },
       relations: ['event'],
     });
