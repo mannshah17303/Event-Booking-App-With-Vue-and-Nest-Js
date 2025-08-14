@@ -3,6 +3,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Booking } from 'src/models/bookings.entity';
 
+interface AverageRating {
+  event_id: number;
+  avg_ratings: number;
+}
+
+export interface BookingDetailsForPieChart {
+  event_location: string;
+  bookingCount: number;
+}
+
 @Injectable()
 export class BookingService {
   constructor(
@@ -56,6 +66,22 @@ export class BookingService {
     });
   }
 
+  async getAllBookingDetailsForPieChart(): Promise<
+    BookingDetailsForPieChart[]
+  > {
+    return this.bookingRepository.query(
+      'select e.event_location, count(1) as bookingCount from bookings b join events e on b.event_id = e.event_id group by e.event_location',
+    );
+  }
+
+  async getPaymentDetailsForLineChart(user_id: number) {
+    return this.bookingRepository.find({
+      where: {
+        user_id,
+      },
+    });
+  }
+
   async getBookingsOfLoggedInUser(user_id: number) {
     return this.bookingRepository.find({
       where: {
@@ -63,6 +89,12 @@ export class BookingService {
       },
       relations: ['event'],
     });
+  }
+
+  async averageRatings(): Promise<AverageRating[]> {
+    return this.bookingRepository.query(
+      'select event_id, round(avg(ratings),2) as avg_ratings from bookings where ratings != 0 group by event_id',
+    );
   }
 
   async updateBooking(eventId: number, star: number, currentUserId: number) {

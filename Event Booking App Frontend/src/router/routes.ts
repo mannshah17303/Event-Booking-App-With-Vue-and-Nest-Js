@@ -10,6 +10,8 @@ import Favorites from "../components/Favorites.vue";
 import Calendar from "../components/Calendar.vue";
 import Tickets from "../components/Tickets.vue";
 import Account from "../components/Account.vue";
+import ForgetPassword from "../components/ForgetPassword.vue";
+import ResetPassword from "../components/ResetPassword.vue";
 
 const checkAuth = async () => {
   try {
@@ -69,7 +71,8 @@ const routes = [
   },
   { path: "/events/calendar", component: Calendar },
   { path: "/account", component: Account },
-
+  { path: "/forget-password", component: ForgetPassword },
+  { path: "/reset-password", component: ResetPassword },
 ];
 
 const router = createRouter({

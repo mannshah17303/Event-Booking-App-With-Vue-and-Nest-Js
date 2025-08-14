@@ -1,14 +1,25 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { VueSpinner } from "vue3-spinners";
 import { useStore } from "vuex";
 import router from "../router/routes";
 import axios from "axios";
 import { toast } from "vue3-toastify";
+import SearchEvent from "../components/SearchEvent.vue";
 
 const store = useStore();
 
-const filteredEvents = computed(() => store.getters.getAllEvents);
+const getAllEvents = computed(() => store.getters.getAllEvents);
+const searchTerm = ref("");
+const filteredEvents = computed(() => {
+  return getAllEvents.value.filter((event: any) => {
+    const search = searchTerm.value.toLowerCase();
+    return (
+      event.event_title.toLowerCase().includes(search) ||
+      event.event_location.toLowerCase().includes(search)
+    );
+  });
+});
 const currentUser = computed(() => store.state.loggedInUser);
 const showRedColorInFavoriteEvents: any = ref([]);
 watch(
@@ -75,10 +86,36 @@ const toggleHeart = (id: number, event: { stopPropagation: () => void }) => {
     store.dispatch("addFavorite", id);
   }
 };
+
+const averageRatingsPerEvent = ref([]);
+onMounted(async () => {
+  const avgRatings = await axios.get(
+    `${import.meta.env.VITE_BOOKINGS}/averageRatings`,
+    {
+      withCredentials: true,
+    }
+  );
+  averageRatingsPerEvent.value = avgRatings.data.data;
+});
+
+const showAvgRatings = (eventId: number) => {
+  const isAvgRatingAvailable: any = averageRatingsPerEvent.value.find(
+    (r: any) => r.event_id === eventId
+  );
+  return isAvgRatingAvailable ? isAvgRatingAvailable.avg_ratings : 0;
+};
+
+const searchedValue = (term: string) => {
+  searchTerm.value = term;
+};
 </script>
 
 <template>
-  <div class="flex w-[100%] justify-between"></div>
+  <div class="flex w-[100%] justify-between">
+    <div>
+      <SearchEvent @filter-event="searchedValue" />
+    </div>
+  </div>
   <div v-if="spinnerLoading" class="spinner-overlay">
     <VueSpinner
       size="50"
@@ -125,6 +162,9 @@ const toggleHeart = (id: number, event: { stopPropagation: () => void }) => {
             </v-card-subtitle>
             <v-card-subtitle class="mt-3">
               <strong>₹{{ event.price }}</strong>
+            </v-card-subtitle>
+            <v-card-subtitle class="mt-3">
+              ⭐ <strong>{{ showAvgRatings(event.event_id) }}</strong>
             </v-card-subtitle>
           </div>
         </div>

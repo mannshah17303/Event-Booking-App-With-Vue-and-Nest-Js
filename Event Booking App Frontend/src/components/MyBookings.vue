@@ -5,13 +5,14 @@ import router from "../router/routes";
 import { jsPDF } from "jspdf";
 import QRCode from "qrcode";
 import axios from "axios";
+import SearchEvent from "./SearchEvent.vue";
 import Button from "../reusableComponents/Button.vue";
 
 const store = useStore();
 
 const currentUser = computed(() => store.state.loggedInUser);
 
-const filteredEvents = ref<any>([]);
+const getAllBookingEvents = ref<any>([]);
 
 const fetchBookings = async (userId: number) => {
   const response = await axios.get(
@@ -21,7 +22,7 @@ const fetchBookings = async (userId: number) => {
       withCredentials: true,
     }
   );
-  filteredEvents.value = response.data.data;
+  getAllBookingEvents.value = response.data.data;
 };
 watch(
   currentUser,
@@ -32,6 +33,16 @@ watch(
   },
   { immediate: true }
 );
+const searchTerm = ref("");
+const filteredEvents = computed(() => {
+  return getAllBookingEvents.value.filter((e: any) => {
+    const search = searchTerm.value.toLowerCase();
+    return (
+      e.event.event_title.toLowerCase().includes(search) ||
+      e.event.event_location.toLowerCase().includes(search)
+    );
+  });
+});
 
 const removeBookedEvent = async (bookingId: string, event: Event) => {
   event.stopPropagation();
@@ -40,7 +51,7 @@ const removeBookedEvent = async (bookingId: string, event: Event) => {
   );
   if (confirmCancelBooking) {
     await store.dispatch("cancelBooking", bookingId);
-    await fetchBookings(currentUser.value.user_id)
+    await fetchBookings(currentUser.value.user_id);
   }
 };
 
@@ -49,7 +60,7 @@ const maxRating = 5;
 const setRating = async (eventId: number, star: number, event: Event) => {
   event.stopPropagation();
   await store.dispatch("ratings", { eventId, star });
-  await fetchBookings(currentUser.value.user_id)
+  await fetchBookings(currentUser.value.user_id);
 };
 
 const downloadBookings = async () => {
@@ -92,13 +103,20 @@ const showTickets = (id: number) => {
 const pdfDownloadTagData = {
   type: "button",
   class:
-    "bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-4 rounded-xl shadow-md hover:scale-105 transition-transform mt-4 ml-2",
+    "bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-4 rounded-xl shadow-md hover:scale-105 transition-transform mt-4 mr-4",
   spanContent: "🎫 Download Bookings",
+};
+
+const searchedValue = (term: string) => {
+  searchTerm.value = term;
 };
 </script>
 
 <template>
-  <div class="flex w-[100%]">
+  <div class="flex w-[100%] justify-between">
+    <div>
+      <SearchEvent @filter-event="searchedValue" />
+    </div>
     <Button @click="downloadBookings" :buttonTagData="pdfDownloadTagData" />
   </div>
   <v-row v-if="filteredEvents.length > 0" v-for="booking in filteredEvents">

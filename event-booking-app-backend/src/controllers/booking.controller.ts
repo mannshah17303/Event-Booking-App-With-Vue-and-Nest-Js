@@ -14,6 +14,16 @@ import { BookingService } from 'src/services/booking.service';
 import { Booking } from 'src/models/bookings.entity';
 import { BookingPriceInterceptor } from 'src/interceptors/booking.price.interceptor';
 
+interface AverageRating {
+  event_id: number;
+  avg_ratings: number;
+}
+
+export interface BookingDetailsForPieChart {
+  event_location: string;
+  bookingCount: number;
+}
+
 @Controller('bookings')
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
@@ -65,6 +75,26 @@ export class BookingController {
     return { message: 'event fetched successful', data: bookingDetails };
   }
 
+  @Get('/getAllBookingDetailsForPieChart')
+  async getAllBookingDetailsForPieChart(): Promise<{
+    message: string;
+    data: BookingDetailsForPieChart[];
+  }> {
+    const bookings =
+      await this.bookingService.getAllBookingDetailsForPieChart();
+    return { message: 'bookings fetched successful', data: bookings };
+  }
+
+  @Get('/getPaymentDetailsForLineChart')
+  async getPaymentDetailsForLineChart(
+    @Query('userId') user_id: string,
+  ): Promise<any> {
+    const payments = await this.bookingService.getPaymentDetailsForLineChart(
+      Number(user_id),
+    );
+    return { message: 'payment details fetched successful', data: payments };
+  }
+
   @Get('/getBookingsOfLoggedInUser')
   async getBookingsOfLoggedInUser(
     @Query('userId') user_id: string,
@@ -73,6 +103,12 @@ export class BookingController {
       Number(user_id),
     );
     return { message: 'event fetched successful', data: bookingDetails };
+  }
+
+  @Get('/averageRatings')
+  async averageRatings(): Promise<{ message: string; data: AverageRating[] }> {
+    const ratings = await this.bookingService.averageRatings();
+    return { message: 'average ratings fetched successful', data: ratings };
   }
 
   @Post('/updateRatings')

@@ -27,6 +27,7 @@ import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
 import { Roles } from '../guards/roles.decorator.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { LoggingInterceptor } from 'src/interceptors/logging.interceptor';
+import { mailService } from 'src/services/mail.service';
 
 @Controller('users')
 @UseInterceptors(LoggingInterceptor)
@@ -127,6 +128,25 @@ export class UserController {
     } catch (err) {
       console.error(err);
       throw new BadRequestException('please provide valid credentials');
+    }
+  }
+
+  @Post('/forget-password')
+  async forgetPassword(@Body('email') email: string): Promise<any> {
+    console.log(email);
+    const user = await this.userService.findUserByEmail(email);
+    if (!user) {
+      throw new NotFoundException('user not found with this email');
+    } else {
+      const token = jwt.sign({ email }, 'mann17303', { expiresIn: '15m' });
+      const resetLink = `http://localhost:5173/reset-password?token=${token}`;
+      await mailService.sendMail(
+        email,
+        'change password request',
+        `Click the link below to reset your password`,
+        `<a href="${resetLink}" target="_blank" style="padding: 10px 20px; background: #3182ce; color: white; border-radius: 4px; text-decoration: none;">Reset Password</a>`,
+      );
+      return { message: 'email send successful' };
     }
   }
 

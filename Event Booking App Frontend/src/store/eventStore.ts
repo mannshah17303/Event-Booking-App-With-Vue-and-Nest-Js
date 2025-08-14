@@ -63,7 +63,7 @@ const store: Store<State> = createStore({
         commit("SET_LOGGED_IN_USER", user);
       } catch (error) {
         const currentPath = router.currentRoute.value.path;
-        const publicRoutes = ["/", "/register", "/events"];
+        const publicRoutes = ["/", "/register", "/events", '/forget-password', '/reset-password'];
         if (!publicRoutes.includes(currentPath)) {
           toast.error("Token expired. Please login again", {
             position: "top-right",

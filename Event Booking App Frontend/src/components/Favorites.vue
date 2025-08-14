@@ -4,6 +4,7 @@ import router from "../router/routes";
 import { computed, ref, watch } from "vue";
 import { VueSpinner } from "vue3-spinners";
 import axios from "axios";
+import SearchEvent from "./SearchEvent.vue";
 
 const store = useStore();
 
@@ -15,7 +16,7 @@ const currentUser = computed(() => store.state.loggedInUser);
 
 const spinnerLoading = computed(() => store.state.isLoading);
 
-const filteredEvents = ref<any>([]);
+const getAllFavoriteEvents = ref<any>([]);
 
 const fetchFavorites = async (userId: number) => {
   const response = await axios.get(
@@ -27,7 +28,7 @@ const fetchFavorites = async (userId: number) => {
       withCredentials: true,
     }
   );
-  filteredEvents.value = response.data.data;
+  getAllFavoriteEvents.value = response.data.data;
 };
 watch(
   currentUser,
@@ -38,10 +39,29 @@ watch(
   },
   { immediate: true }
 );
+
+const searchTerm = ref("");
+const filteredEvents = computed(() => {
+  return getAllFavoriteEvents.value.filter((e: any) => {
+    const search = searchTerm.value.toLowerCase();
+    return (
+      e.event.event_title.toLowerCase().includes(search) ||
+      e.event.event_location.toLowerCase().includes(search)
+    );
+  });
+});
+
+const searchedValue = (term: string) => {
+  searchTerm.value = term;
+};
 </script>
 
 <template>
-  <div class="flex w-[100%] justify-between"></div>
+  <div class="flex w-[100%] justify-between">
+    <div>
+      <SearchEvent @filter-event="searchedValue" />
+    </div>
+  </div>
   <div v-if="spinnerLoading" class="spinner-overlay">
     <VueSpinner
       size="50"

@@ -5,6 +5,7 @@ import useVuelidate from "@vuelidate/core";
 import { required, email, helpers } from "@vuelidate/validators";
 import { useStore } from "vuex";
 import axios from "axios";
+import ApexChart from "vue3-apexcharts";
 import { toast } from "vue3-toastify";
 
 const store = useStore();
@@ -16,6 +17,8 @@ const formData = ref({
 });
 
 let bookedData: any = ref([]);
+let paymentDetails = ref([]);
+let getBookingDetailsForPieChart = ref([]);
 
 watch(
   () => store.state.loggedInUser,
@@ -26,14 +29,34 @@ watch(
       formData.value.email = user.email;
 
       try {
-        const res = await axios.get(
+        const getBookingsOfLoggedInUser = await axios.get(
           `${import.meta.env.VITE_BOOKINGS}/getBookingsOfLoggedInUser`,
           {
             params: { userId: user.user_id },
             withCredentials: true,
           }
         );
-        bookedData.value = res.data.data;
+        bookedData.value = getBookingsOfLoggedInUser.data.data;
+
+        const getAllBookings = await axios.get(
+          `${import.meta.env.VITE_BOOKINGS}/getAllBookingDetailsForPieChart`,
+          {
+            withCredentials: true,
+          }
+        );
+        getBookingDetailsForPieChart.value = getAllBookings.data.data;
+
+        const response = await axios.get(
+          `${import.meta.env.VITE_BOOKINGS}/getPaymentDetailsForLineChart`,
+          {
+            params: {
+              userId: currentUser.value.user_id,
+            },
+            withCredentials: true,
+          }
+        );
+        paymentDetails.value = response.data.data;
+        console.log(paymentDetails.value);
       } catch (error) {
         toast.error("something went wrong!!");
       }
@@ -41,6 +64,64 @@ watch(
   },
   { immediate: true }
 );
+const series = computed(() => [
+  {
+    name: "Total Spending",
+    data: paymentDetails.value.map((d: any) => d.total_price),
+  },
+]);
+const categories = computed(() =>
+  paymentDetails.value.map((d: any) => new Date(d.booking_date).toISOString().split("T")[0])
+);
+
+const series1 = computed(() =>
+  getBookingDetailsForPieChart.value.map((d: any) => Number(d.bookingCount))
+);
+const labels = computed(() =>
+  getBookingDetailsForPieChart.value.map((d: any) => d.event_location)
+);
+
+const chartOptions = computed(() => ({
+  chart: {
+    type: "line",
+    height: 350,
+    zoom: { enabled: false },
+  },
+  xaxis: {
+    categories: categories.value,
+    title: {
+      text: "Booking Date",
+    },
+  },
+  yaxis: {
+    title: {
+      text: "Amount (₹)",
+    },
+    min: 0,
+  },
+  tooltip: {
+    enabled: true,
+    y: {
+      formatter: (val: any) => `₹${val.toLocaleString()}`,
+    },
+  },
+}));
+
+const chartOptions1 = computed(() => ({
+  chart: {
+    type: "pie",
+    height: 350,
+  },
+  labels: labels.value,
+  legend: {
+    position: "bottom",
+  },
+  tooltip: {
+    y: {
+      formatter: (val: any) => `${val} bookings`,
+    },
+  },
+}));
 
 const totalAmountSpend = computed(() => {
   return bookedData.value.reduce(
@@ -179,6 +260,27 @@ const userEmailInputData = {
             />
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="max-w-7xl p-6 flex flex-col md:flex-row gap-6 mb-4">
+      <div class="flex-1">
+        <ApexChart
+          type="line"
+          :series="series"
+          :options="chartOptions"
+          height="338"
+          class="rounded-md border border-gray-200"
+        />
+      </div>
+
+      <div class="flex-1">
+        <ApexChart
+          :series="series1"
+          :options="chartOptions1"
+          height="350"
+          class="rounded-md border border-gray-200"
+        />
       </div>
     </div>
 
