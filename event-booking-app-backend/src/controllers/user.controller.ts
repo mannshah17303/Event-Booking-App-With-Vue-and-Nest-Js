@@ -150,6 +150,15 @@ export class UserController {
     }
   }
 
+  @Post('/reset-password')
+  async resetPassword(
+    @Body('password') password: string,
+    @Body('token') token: string,
+  ) {
+    const resetPassword = await this.userService.resetPassword(password, token);
+    return { message: 'password reset successful', data: resetPassword };
+  }
+
   @Delete('/delete/:id')
   async deleteUser(@Param('id', ParseIntPipe) id: number): Promise<any> {
     try {

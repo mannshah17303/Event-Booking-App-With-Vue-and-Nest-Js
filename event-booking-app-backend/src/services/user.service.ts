@@ -4,6 +4,7 @@ import { User } from '../models/user.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from 'src/pipes/schemas/user.schema';
 import bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class UserService {
@@ -49,6 +50,23 @@ export class UserService {
         email,
       },
     });
+  }
+
+  async resetPassword(password: string, token: string) {
+    const decoded = jwt.verify(token, 'mann17303') as { email: string };
+    const hashedPassword = await bcrypt.hash(password, 10);
+    password = hashedPassword;
+    const foundUsers = await this.userRepository.findOne({
+      where: {
+        email: decoded.email,
+      },
+    });
+    return await this.userRepository.update(
+      {
+        email: foundUsers?.email,
+      },
+      { password },
+    );
   }
 
   async deleteUser(id: number): Promise<any> {
