@@ -117,7 +117,7 @@ const submitEvent = async () => {
           price_per_ticket: parseFloat(eventDataBasedOnId.value!.price),
         };
         try {
-          store.dispatch("addBooking", insertBookedData);
+          await store.dispatch("addBooking", insertBookedData);
 
           alert("Payment successful and booking confirmed!");
           cancelForm();
